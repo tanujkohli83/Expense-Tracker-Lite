@@ -11,7 +11,8 @@ class Dashboard extends StatefulWidget {
 
 class _DashboardState extends State<Dashboard> {
   List<Expense> expenseList = [];
-  String totalBudget = "";
+  double totalBudget = 0.0;
+  double remainingBalance = 0.0;
   String expenseReason = "";
   double expenseAmount = 0.0;
   final TextEditingController _bugetTextController = TextEditingController();
@@ -131,7 +132,11 @@ class _DashboardState extends State<Dashboard> {
                                           // save the user enter amount
                                           setState(() {
                                             totalBudget =
-                                                _bugetTextController.text;
+                                                double.tryParse(
+                                                  _bugetTextController.text,
+                                                ) ??
+                                                0.0;
+                                            remainingBalance = totalBudget;
                                           });
                                           Navigator.of(context).pop();
                                         },
@@ -157,7 +162,7 @@ class _DashboardState extends State<Dashboard> {
 
                       Expanded(
                         child: Text(
-                          "₹ $totalBudget",
+                          "₹ $remainingBalance",
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 40,
@@ -253,6 +258,16 @@ class _DashboardState extends State<Dashboard> {
                                   expenseList.add(
                                     Expense(expenseReason, expenseAmount),
                                   );
+                                  remainingBalance -= expenseAmount;
+
+                                  if (expenseAmount <= 0) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text("Enter valid amount"),
+                                      ),
+                                    );
+                                    return;
+                                  }
                                 });
                                 Navigator.of(context).pop();
                               },
