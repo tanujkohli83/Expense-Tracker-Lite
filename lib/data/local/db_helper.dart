@@ -49,4 +49,17 @@ class DBHelper {
       },
     );
   }
+
+  // query
+
+  void addBudget(){}
+
+  void addExpense(){}
+
+  void editBudget(){}
+
+  void editExpense(){}
+
+  void deleteData(){}
+
 }
