@@ -269,6 +269,10 @@ class _DashboardState extends State<Dashboard> {
                                     return;
                                   }
                                 });
+
+                                expenseReason = "";
+                                expenseAmount = 0.0;
+
                                 Navigator.of(context).pop();
                               },
                               child: Text(
