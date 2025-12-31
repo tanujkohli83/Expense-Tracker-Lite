@@ -47,19 +47,45 @@ class DBHelper {
           )
           ''');
       },
+      version: 1,
     );
   }
 
   // query
+  Future<bool> addBudget({required double amt}) async {
+    var db = await getDB();
 
-  void addBudget(){}
+    int rowEffected = await db.insert("budgetAmt", {"budgetAmount": amt});
 
-  void addExpense(){}
+    return rowEffected > 0;
+  }
 
-  void editBudget(){}
+  Future<bool> addExpense({required String res, required double amt}) async {
+    var db = await getDB();
 
-  void editExpense(){}
+    int rowEffected = await db.insert("expenseTable", {
+      "reason": res,
+      "amount": amt,
+    });
 
-  void deleteData(){}
+    return rowEffected > 0;
+  }
 
+  void editBudget() {}
+
+  void editExpense() {}
+
+  Future<List<Map<String, dynamic>>> getBudgetData() async {
+    var db = await getDB();
+    List<Map<String, dynamic>> data = await db.query("budgetAmt");
+    return data;
+  }
+
+  Future<List<Map<String, dynamic>>> getExpenseData() async {
+    var db = await getDB();
+    List<Map<String, dynamic>> data = await db.query("expenseTable");
+    return data;
+  }
+
+  void deleteData() {}
 }

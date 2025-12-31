@@ -1,4 +1,5 @@
 import 'package:expensetrackerlite/ExpenseDataModel.dart';
+import 'package:expensetrackerlite/data/local/db_helper.dart';
 import 'package:flutter/material.dart';
 import '../Widgets/ExpenseList.dart';
 
@@ -15,16 +16,39 @@ class _DashboardState extends State<Dashboard> {
   double remainingBalance = 0.0;
   String expenseReason = "";
   double expenseAmount = 0.0;
+  DBHelper? dbRef;
   final TextEditingController _bugetTextController = TextEditingController();
   final TextEditingController _addExpenseController = TextEditingController();
   final TextEditingController _addReasonController = TextEditingController();
+  List<Map<String, dynamic>> amt = [];
+  List<Map<String, dynamic>> expenses = [];
 
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   expenseList.add(Expense("cafe", 1000));
-  //   expenseList.add(Expense("Travel", 2000));
-  // }
+  @override
+  void initState() {
+    super.initState();
+    // expenseList.add(Expense("cafe", 1000));
+    // expenseList.add(Expense("Travel", 2000));
+    dbRef = DBHelper.getInstance();
+    loadBudget();
+    loadExpenses();
+  }
+
+  Future<void> loadBudget() async {
+    final data = await dbRef!.getBudgetData();
+
+    if (data.isNotEmpty) {
+      totalBudget = data.first["budgetAmount"];
+    } else {
+      totalBudget = 0.0;
+    }
+
+    setState(() {});
+  }
+
+  Future<void> loadExpenses() async {
+    expenses = await dbRef!.getExpenseData();
+    setState(() {});
+  }
 
   @override
   void dispose() {
@@ -128,17 +152,20 @@ class _DashboardState extends State<Dashboard> {
                                         ),
                                       ),
                                       TextButton(
-                                        onPressed: () {
-                                          // save the user enter amount
-                                          setState(() {
-                                            totalBudget =
-                                                double.tryParse(
-                                                  _bugetTextController.text,
-                                                ) ??
-                                                0.0;
-                                            remainingBalance = totalBudget;
-                                          });
-                                          Navigator.of(context).pop();
+                                        onPressed: () async {
+                                          final value =
+                                              double.tryParse(
+                                                _bugetTextController.text,
+                                              ) ??
+                                              0.0;
+
+                                          await dbRef!.addBudget(amt: value);
+
+                                          await loadBudget(); // load from DB and setState() inside it
+
+                                          _bugetTextController.clear();
+
+                                          Navigator.pop(context);
                                         },
                                         child: Text(
                                           "Save",
@@ -162,7 +189,7 @@ class _DashboardState extends State<Dashboard> {
 
                       Expanded(
                         child: Text(
-                          "₹ $remainingBalance",
+                          "₹ $totalBudget",
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 40,
@@ -245,35 +272,33 @@ class _DashboardState extends State<Dashboard> {
                               ),
                             ),
                             TextButton(
-                              onPressed: () {
-                                // save the user enter reason
-                                setState(() {
-                                  expenseReason = _addReasonController.text;
-                                  expenseAmount =
-                                      double.tryParse(
-                                        _addExpenseController.text,
-                                      ) ??
-                                      0.0;
+                              onPressed: () async {
+                                final reason = _addReasonController.text;
+                                final amount =
+                                    double.tryParse(
+                                      _addExpenseController.text,
+                                    ) ??
+                                    0.0;
 
-                                  expenseList.add(
-                                    Expense(expenseReason, expenseAmount),
-                                  );
-                                  remainingBalance -= expenseAmount;
-
-                                  if (expenseAmount <= 0) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text("Enter valid amount"),
+                                if (amount <= 0 || reason.isEmpty) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        "Enter valid reason & amount",
                                       ),
-                                    );
-                                    return;
-                                  }
-                                });
+                                    ),
+                                  );
+                                  return;
+                                }
 
-                                expenseReason = "";
-                                expenseAmount = 0.0;
+                                await dbRef!.addExpense(
+                                  res: reason,
+                                  amt: amount,
+                                );
 
-                                Navigator.of(context).pop();
+                                await loadExpenses(); // reload UI
+
+                                Navigator.pop(context);
                               },
                               child: Text(
                                 "Save",

@@ -21,5 +21,3 @@ class ExpenseTracker extends StatelessWidget {
     );
   }
 }
-
-
