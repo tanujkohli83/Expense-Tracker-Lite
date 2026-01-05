@@ -12,7 +12,7 @@ class ExpenseTracker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: true,
+      debugShowCheckedModeBanner: false,
       initialRoute: '/', // Specifies the first screen
       routes: {
         '/': (context) => Dashboard(),
